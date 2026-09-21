@@ -13,20 +13,20 @@ Embed:
 <br>
 ## Features
 
-📻 Listen to worldwide internet radio stations
-🎵 Play local music files from your computer
-⭐ Favorite radio stations
-➕ Add new radio stations
-✏️ Edit radio station information
-🗑️ Delete radio stations
-🔗 View and edit radio stream URLs
-💾 Store radio stations and favorites in the browser using `localStorage`
-📂 Import radio lists from JSON files
-📤 Export radio lists as JSON files
-🎚️ Volume and playback controls
-📱 Mobile-friendly interface
-🌐 Works as a single HTML file
-🔗 Support for compatible HLS (`.m3u8`) streams
+📻 Listen to worldwide internet radio stations<br>
+🎵 Play local music files from your computer<br>
+⭐ Favorite radio stations<br>
+➕ Add new radio stations<br>
+✏️ Edit radio station information<br>
+🗑️ Delete radio stations<br>
+🔗 View and edit radio stream URLs<br>
+💾 Store radio stations and favorites in the browser using `localStorage`<br>
+📂 Import radio lists from JSON files<br>
+📤 Export radio lists as JSON files<br>
+🎚️ Volume and playback controls<br>
+📱 Mobile-friendly interface<br>
+🌐 Works as a single HTML file<br>
+🔗 Support for compatible HLS (`.m3u8`) streams<br>
 
 ### Note
 
