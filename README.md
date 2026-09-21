@@ -8,5 +8,5 @@ Embed:
     allow="autoplay">
 </iframe>
 
-
-<img width="403" height="393" alt="EB-player" src="https://github.com/user-attachments/assets/42d4a55d-0881-4031-82d5-34f6d0f984b3" />
+<br>
+<img width="380" height="394" alt="EB-player" src="https://github.com/user-attachments/assets/21a88da2-7177-4c57-8cc8-18c370873aa8" />
