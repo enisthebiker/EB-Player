@@ -71,6 +71,30 @@ body {
     color: #aaa;
 }
 /* ================================
+   DİL BUTONLARI
+================================ */
+
+.language-buttons {
+    margin-left: auto;
+    display: flex;
+    gap: 3px;
+}
+
+.language-buttons button {
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 3px;
+    color: #aaa;
+    font-size: 10px;
+    padding: 3px 5px;
+    cursor: pointer;
+}
+
+.language-buttons button:hover {
+    background: #444;
+    color: #ddd;
+}
+/* ================================
    EKRAN
 ================================ */
 
@@ -568,6 +592,11 @@ body {
     <span id="digitalClock">--:--:--</span>
     <span id="digitalDate">--.--.----</span>
     <span id="weather">🌤️ --°C</span>
+
+    <div class="language-buttons">
+        <button id="trButton">TR</button>
+        <button id="enButton">EN</button>
+    </div>
 </div>
 
 
@@ -580,7 +609,7 @@ body {
         </div>
 
         <div class="status" id="status">
-            Müzik veya Radyo seç
+            Müzik veya Radyo seç - Select music or radio
         </div>
 
     </div>
@@ -838,6 +867,13 @@ body {
 
    Audio sadece arka planda ses motorudur.
 ======================================== */
+/* ========================================
+   DİL
+======================================== */
+
+let currentLanguage =
+    localStorage.getItem("enisLanguage") || "tr";
+
 
 const audio = new Audio();
 let globalHls = null;
@@ -869,8 +905,7 @@ function playRadioStream(url) {
 
                     audio.play().catch(function() {
 
-                        statusBox.textContent =
-                            "Oynatmak için ▶ bas";
+                        setStatus("playHint");
 
                     });
 
@@ -889,8 +924,7 @@ function playRadioStream(url) {
 
             audio.play().catch(function() {
 
-                statusBox.textContent =
-                    "Oynatmak için ▶ bas";
+                setStatus("playHint");
 
             });
 
@@ -904,8 +938,7 @@ function playRadioStream(url) {
 
         audio.play().catch(function() {
 
-            statusBox.textContent =
-                "Oynatmak için ▶ bas";
+            setStatus("playHint");
 
         });
 
@@ -1694,8 +1727,7 @@ function loadTrack() {
         track.name;
 
 
-    statusBox.textContent =
-        "Hazır";
+    setStatus("ready");
 
 
     progressFill.style.width =
@@ -1726,8 +1758,7 @@ function togglePlay() {
 
     if (!audio.src) {
 
-        statusBox.textContent =
-            "Önce MP3 veya URL seç";
+        setStatus("noSource");
 
         return;
 
@@ -1742,14 +1773,12 @@ function togglePlay() {
                 playButton.textContent =
                     "❚❚";
 
-                statusBox.textContent =
-                    "Çalıyor";
+                setStatus("playing");
 
             })
             .catch(function() {
 
-                statusBox.textContent =
-                    "Oynatılamadı";
+                setStatus("failed");
 
             });
 
@@ -1778,8 +1807,7 @@ audio.addEventListener(
             playButton.textContent =
                 "▶";
 
-            statusBox.textContent =
-                "Duraklatıldı";
+            setStatus("paused");
 
         }
 
@@ -1799,8 +1827,7 @@ audio.addEventListener(
         playButton.textContent =
             "❚❚";
 
-        statusBox.textContent =
-            "Çalıyor";
+        setStatus("playing");
 
     }
 );
@@ -2134,8 +2161,7 @@ function nextTrack() {
                 playButton.textContent =
                     "▶";
 
-                statusBox.textContent =
-                    "Liste bitti";
+                setStatus("listEnd");
 
                 return;
 
@@ -2204,8 +2230,7 @@ function nextTrack() {
                 playButton.textContent =
                     "▶";
 
-                statusBox.textContent =
-                    "Liste bitti";
+                setStatus("listEnd");
 
                 return;
 
@@ -2222,8 +2247,7 @@ function nextTrack() {
     audio.play()
         .catch(function() {
 
-            statusBox.textContent =
-                "Oynatmak için ▶ bas";
+            setStatus("playHint");
 
         });
 
@@ -2427,7 +2451,7 @@ function renderRadios() {
         const addButton = document.createElement("button");
 
         addButton.textContent = "+";
-        addButton.title = "Playlist'e ekle";
+        addButton.title = LT("playlistAdd");
 
         addButton.style.float = "right";
         addButton.style.background = "none";
@@ -2522,7 +2546,7 @@ function renderRadios() {
                 currentRadio = -1;
 
                 songName.textContent = "Hazır";
-                statusBox.textContent = "Radyo silindi";
+                setStatus("radioDeleted");
                 playButton.textContent = "▶";
             }
 
@@ -2612,7 +2636,7 @@ function renderRadios() {
 
             songName.textContent = radio.name;
 
-            statusBox.textContent = "Hazır";
+            setStatus("ready");
 
             progressFill.style.width = "0%";
 
@@ -2626,8 +2650,7 @@ function renderRadios() {
             renderRadios();
 
             audio.play().catch(function() {
-                statusBox.textContent =
-                    "Oynatmak için ▶ bas";
+                setStatus("playHint");
             });
         });
 
@@ -2635,199 +2658,318 @@ function renderRadios() {
         radioList.appendChild(item);
     });
 }
+
+
 /* ========================================
    KÜTÜPHANE
+   TÜRKÇE / İNGİLİZCE
+======================================== */
+
+let libraryView = "home";
+
+
+const libraryLang = {
+
+    tr: {
+
+        library: "📚 KÜTÜPHANE",
+        libraryButton: "📚 Kitaplık",
+
+        favoriteRadios: "★  Favori Radyolar",
+        radios: "📻  Radyolar",
+
+playlistAdd: "Playlist'e ekle",
+favoriteAddRemove: "Favorilere ekle / çıkar",
+
+        import: "📥 İçe Aktar",
+        export: "📤 Dışa Aktar",
+
+        music: "🎵 Müzikler ▼",
+        playlists: "PLAYLISTLER",
+
+        noPlaylist:
+            "Henüz özel playlist yok.",
+
+        newPlaylist:
+            "＋ Yeni Playlist",
+
+        musicTitle:
+            "🎵 Müzikler",
+
+        noMusicFolder:
+            "Henüz müzik klasörü eklenmedi.",
+
+        newMusicFolder:
+            "＋ Yeni Müzik Klasörü Ekle",
+
+        playlistEmpty:
+            "Bu playlist henüz boş.",
+
+        removeFromPlaylist:
+            "Playlist'ten çıkar",
+
+        deletePlaylist:
+            "🗑 Playlist'i Sil",
+
+        back:
+            "← Kütüphaneye Dön",
+
+        favorites:
+            "★ FAVORİLER",
+
+        noFavorite:
+            "Henüz favori radyo yok.",
+
+        playlistAdded:
+            "Playlist'e eklendi",
+
+        playlistName:
+            "Playlist adı:",
+
+        choosePlaylist:
+            "Hangi playlist'e eklensin?",
+
+        enterNumber:
+            "Numara gir:",
+
+        noPlaylistAsk:
+            "Henüz playlist yok. Yeni playlist oluşturulsun mu?",
+
+        importInvalid:
+            "Geçersiz EB-PLAYER dosyası.",
+
+        importConfirm:
+            "Mevcut radyo listen ve favorilerin değiştirilecek. Devam edilsin mi?",
+
+        importSuccess:
+            "Radyolar ve favoriler içe aktarıldı.",
+
+        importError:
+            "Dosya okunamadı.",
+
+        exportSuccess:
+            "Radyolar dışa aktarıldı.",
+
+        deleteConfirm:
+            "playlisti silinsin mi?",
+
+        worldRadio:
+            "Dünya Radyosu"
+
+    },
+
+
+    en: {
+
+        library: "📚 LIBRARY",
+        libraryButton: "📚 Library",
+
+        favoriteRadios: "★  Favorite Radios",
+        radios: "📻  Radios",
+playlistAdd: "Add to Playlist",
+favoriteAddRemove: "Add / Remove from Favorites",
+
+        import: "📥 Import",
+        export: "📤 Export",
+
+        music: "🎵 Music ▼",
+        playlists: "PLAYLISTS",
+
+        noPlaylist:
+            "No custom playlists yet.",
+
+        newPlaylist:
+            "＋ New Playlist",
+
+        musicTitle:
+            "🎵 Music",
+
+        noMusicFolder:
+            "No music folder has been added yet.",
+
+        newMusicFolder:
+            "＋ Add New Music Folder",
+
+        playlistEmpty:
+            "This playlist is empty.",
+
+        removeFromPlaylist:
+            "Remove from playlist",
+
+        deletePlaylist:
+            "🗑 Delete Playlist",
+
+        back:
+            "← Back to Library",
+
+        favorites:
+            "★ FAVORITES",
+
+        noFavorite:
+            "No favorite radio yet.",
+
+        playlistAdded:
+            "Added to playlist",
+
+        playlistName:
+            "Playlist name:",
+
+        choosePlaylist:
+            "Which playlist should it be added to?",
+
+        enterNumber:
+            "Enter number:",
+
+        noPlaylistAsk:
+            "There is no playlist yet. Create a new playlist?",
+
+        importInvalid:
+            "Invalid EB-PLAYER file.",
+
+        importConfirm:
+            "Your current radio list and favorites will be replaced. Continue?",
+
+        importSuccess:
+            "Radios and favorites imported.",
+
+        importError:
+            "The file could not be read.",
+
+        exportSuccess:
+            "Radios exported.",
+
+        deleteConfirm:
+            "delete playlist?",
+
+        worldRadio:
+            "World Radio"
+
+    }
+
+};
+
+const statusLang = {
+    tr: {
+        select: "Müzik veya Radyo seç",
+        ready: "Hazır",
+        playing: "Çalıyor",
+        paused: "Duraklatıldı",
+        playHint: "Oynatmak için ▶ bas",
+        noSource: "Önce MP3 veya URL seç",
+        failed: "Oynatılamadı",
+        listEnd: "Liste bitti",
+        radioDeleted: "Radyo silindi",
+        enterRadio: "Radyo adı ve URL girin.",
+        selectRadio: "Önce bir radyo seçin.",
+        sourceFailed: "Bu kaynak oynatılamadı."
+    },
+
+    en: {
+        select: "Select music or radio",
+        ready: "Ready",
+        playing: "Playing",
+        paused: "Paused",
+        playHint: "Press ▶ to play",
+        noSource: "Select an MP3 or URL first",
+        failed: "Could not play",
+        listEnd: "End of list",
+        radioDeleted: "Radio deleted",
+        enterRadio: "Enter radio name and URL.",
+        selectRadio: "Select a radio first.",
+        sourceFailed: "This source could not be played."
+    }
+};
+
+function ST(key) {
+    return statusLang[currentLanguage][key]
+        || statusLang.tr[key]
+        || key;
+}
+
+function setStatus(key) {
+    if (statusBox) {
+        statusBox.textContent = ST(key);
+    }
+}
+
+
+function LT(key) {
+
+    return libraryLang[currentLanguage][key] ||
+           libraryLang.tr[key] ||
+           key;
+
+}
+
+
+/* ========================================
+   KÜTÜPHANEYİ AÇ / KAPAT
 ======================================== */
 
 function toggleLibrary() {
-    const library = document.getElementById("library");
-    const playlist = document.getElementById("playlist");
-    const radioList = document.getElementById("radioList");
-    const urlArea = document.getElementById("urlArea");
-
-    if (library.style.display === "block") {
-        library.style.display = "none";
-        return;
-    }
-
-    playlist.style.display = "none";
-    radioList.style.display = "none";
-    urlArea.style.display = "none";
-    library.style.display = "block";
-    currentLibraryPlaylist = null;
-    renderLibraryHome();
-}
-
-function saveLibraryPlaylists() {
-    localStorage.setItem("enisPlaylists", JSON.stringify(libraryPlaylists));
-}
-
-function renderLibraryHome() {
-    const library = document.getElementById("library");
-    library.innerHTML = "";
-
-    const title = document.createElement("div");
-    title.className = "library-title";
-    title.textContent = "📚 KÜTÜPHANE";
-    library.appendChild(title);
-
-    addLibraryRow("★  Favori Radyolar", function() { renderFavoritesLibrary(); });
-    addLibraryRow("📻  Radyolar", function() { toggleRadios(); });
-
-
-const importExportRow = document.createElement("div");
-
-importExportRow.style.display = "flex";
-importExportRow.style.gap = "8px";
-importExportRow.style.padding = "6px 10px";
-
-const importButton = document.createElement("button");
-
-importButton.textContent = "📥 İçe Aktar";
-importButton.style.flex = "1";
-importButton.style.cursor = "pointer";
-
-importButton.onclick = function() {
-
-    const input = document.createElement("input");
-
-    input.type = "file";
-    input.accept = ".json";
-
-    input.onchange = function(event) {
-
-        const file = event.target.files[0];
-
-        if (!file) return;
-
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-
-            try {
-
-                const data = JSON.parse(e.target.result);
-
-                if (
-                    !Array.isArray(data.radioList) ||
-                    !Array.isArray(data.favorites)
-                ) {
-                    alert("Geçersiz ENIS PLAYER dosyası.");
-                    return;
-                }
-
-                if (
-                    !confirm(
-                        "Mevcut radyo listen ve favorilerin değiştirilecek. Devam edilsin mi?"
-                    )
-                ) {
-                    return;
-                }
-
-                radioListData = data.radioList;
-                favoriteRadios = data.favorites;
-
-                localStorage.setItem(
-                    "enisRadioList",
-                    JSON.stringify(radioListData)
-                );
-
-                localStorage.setItem(
-                    "enisFavoriteRadios",
-                    JSON.stringify(favoriteRadios)
-                );
-
-                renderLibraryHome();
-
-                alert("Radyolar ve favoriler içe aktarıldı.");
-
-            } catch (error) {
-
-                alert("Dosya okunamadı.");
-
-            }
-
-        };
-
-        reader.readAsText(file);
-    };
-
-    input.click();
-};
-
-const exportButton = document.createElement("button");
-
-exportButton.textContent = "📤 Dışa Aktar";
-exportButton.style.flex = "1";
-exportButton.style.cursor = "pointer";
-
-exportButton.onclick = function() {
-
-    const data = {
-        radioList: radioListData,
-        favorites: favoriteRadios
-    };
-
-    const blob = new Blob(
-        [JSON.stringify(data, null, 2)],
-        { type: "application/json" }
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "ENIS-PLAYER-RADYOLAR.json";
-
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    URL.revokeObjectURL(url);
-
-    statusBox.textContent = "Radyolar dışa aktarıldı";
-};
-
-importExportRow.appendChild(importButton);
-importExportRow.appendChild(exportButton);
-
-library.appendChild(importExportRow);
-
-
-
-    addLibraryRow("🎵 Müzikler ▼", function() { renderMusicFolders(); });
-
-    const ptitle = document.createElement("div");
-    ptitle.className = "library-title";
-    ptitle.textContent = "PLAYLISTLER";
-    library.appendChild(ptitle);
-
-    if (!libraryPlaylists.length) {
-        const empty = document.createElement("div");
-        empty.className = "library-empty";
-        empty.textContent = "Henüz özel playlist yok.";
-        library.appendChild(empty);
-    } else {
-        libraryPlaylists.forEach(function(pl, index) {
-            addLibraryRow("📂  " + pl.name, function() { renderCustomPlaylist(index); });
-        });
-    }
-
-    const add = document.createElement("button");
-    add.className = "library-add";
-    add.textContent = "＋ Yeni Playlist";
-    add.onclick = createLibraryPlaylist;
-    library.appendChild(add);
-}
-
-
-
-function renderMusicFolders() {
 
     const library =
         document.getElementById("library");
 
+    const playlist =
+        document.getElementById("playlist");
+
+    const radioList =
+        document.getElementById("radioList");
+
+    const urlArea =
+        document.getElementById("urlArea");
+
+
+    if (library.style.display === "block") {
+
+        library.style.display = "none";
+
+        return;
+    }
+
+
+    playlist.style.display = "none";
+    radioList.style.display = "none";
+    urlArea.style.display = "none";
+
+    library.style.display = "block";
+
+    currentLibraryPlaylist = null;
+
+    libraryView = "home";
+
+    renderLibraryHome();
+}
+
+
+/* ========================================
+   PLAYLISTLERİ KAYDET
+======================================== */
+
+function saveLibraryPlaylists() {
+
+    localStorage.setItem(
+        "enisPlaylists",
+        JSON.stringify(libraryPlaylists)
+    );
+
+}
+
+
+/* ========================================
+   KÜTÜPHANE ANA SAYFA
+======================================== */
+
+function renderLibraryHome() {
+
+    const library =
+        document.getElementById("library");
+
+    libraryView = "home";
+
     library.innerHTML = "";
+
 
     const title =
         document.createElement("div");
@@ -2836,9 +2978,377 @@ function renderMusicFolders() {
         "library-title";
 
     title.textContent =
-        "🎵 Müzikler";
+        LT("library");
 
     library.appendChild(title);
+
+
+    addLibraryRow(
+        LT("favoriteRadios"),
+        function() {
+            renderFavoritesLibrary();
+        }
+    );
+
+
+    addLibraryRow(
+        LT("radios"),
+        function() {
+            toggleRadios();
+        }
+    );
+
+
+    /* ========================================
+       İÇE / DIŞA AKTAR
+    ======================================== */
+
+    const importExportRow =
+        document.createElement("div");
+
+    importExportRow.style.display =
+        "flex";
+
+    importExportRow.style.gap =
+        "8px";
+
+    importExportRow.style.padding =
+        "6px 10px";
+
+
+    const importButton =
+        document.createElement("button");
+
+    importButton.textContent =
+        LT("import");
+
+    importButton.style.flex =
+        "1";
+
+    importButton.style.cursor =
+        "pointer";
+
+
+    importButton.onclick =
+        function() {
+
+            const input =
+                document.createElement("input");
+
+            input.type =
+                "file";
+
+            input.accept =
+                ".json";
+
+
+            input.onchange =
+                function(event) {
+
+                    const file =
+                        event.target.files[0];
+
+                    if (!file) {
+                        return;
+                    }
+
+
+                    const reader =
+                        new FileReader();
+
+
+                    reader.onload =
+                        function(e) {
+
+                            try {
+
+                                const data =
+                                    JSON.parse(
+                                        e.target.result
+                                    );
+
+
+                                if (
+                                    !Array.isArray(
+                                        data.radioList
+                                    ) ||
+                                    !Array.isArray(
+                                        data.favorites
+                                    )
+                                ) {
+
+                                    alert(
+                                        LT("importInvalid")
+                                    );
+
+                                    return;
+                                }
+
+
+                                if (
+                                    !confirm(
+                                        LT("importConfirm")
+                                    )
+                                ) {
+
+                                    return;
+                                }
+
+
+                                radioListData =
+                                    data.radioList;
+
+                                favoriteRadios =
+                                    data.favorites;
+
+
+                                localStorage.setItem(
+                                    "enisRadioList",
+                                    JSON.stringify(
+                                        radioListData
+                                    )
+                                );
+
+
+                                localStorage.setItem(
+                                    "enisFavoriteRadios",
+                                    JSON.stringify(
+                                        favoriteRadios
+                                    )
+                                );
+
+
+                                renderLibraryHome();
+
+
+                                alert(
+                                    LT("importSuccess")
+                                );
+
+                            }
+
+
+                            catch (error) {
+
+                                alert(
+                                    LT("importError")
+                                );
+
+                            }
+
+                        };
+
+
+                    reader.readAsText(file);
+
+                };
+
+
+            input.click();
+
+        };
+
+
+    const exportButton =
+        document.createElement("button");
+
+
+    exportButton.textContent =
+        LT("export");
+
+    exportButton.style.flex =
+        "1";
+
+    exportButton.style.cursor =
+        "pointer";
+
+
+    exportButton.onclick =
+        function() {
+
+            const data = {
+
+                radioList:
+                    radioListData,
+
+                favorites:
+                    favoriteRadios
+
+            };
+
+
+            const blob =
+                new Blob(
+                    [
+                        JSON.stringify(
+                            data,
+                            null,
+                            2
+                        )
+                    ],
+                    {
+                        type:
+                            "application/json"
+                    }
+                );
+
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const a =
+                document.createElement("a");
+
+            a.href =
+                url;
+
+            a.download =
+                "ENIS-PLAYER-RADYOLAR.json";
+
+
+            document.body.appendChild(a);
+
+            a.click();
+
+            document.body.removeChild(a);
+
+
+            URL.revokeObjectURL(url);
+
+
+            statusBox.textContent =
+                LT("exportSuccess");
+
+        };
+
+
+    importExportRow.appendChild(
+        importButton
+    );
+
+    importExportRow.appendChild(
+        exportButton
+    );
+
+    library.appendChild(
+        importExportRow
+    );
+
+
+    /* ========================================
+       MÜZİKLER
+    ======================================== */
+
+    addLibraryRow(
+        LT("music"),
+        function() {
+            renderMusicFolders();
+        }
+    );
+
+
+    /* ========================================
+       PLAYLISTLER
+    ======================================== */
+
+    const ptitle =
+        document.createElement("div");
+
+    ptitle.className =
+        "library-title";
+
+    ptitle.textContent =
+        LT("playlists");
+
+    library.appendChild(
+        ptitle
+    );
+
+
+    if (!libraryPlaylists.length) {
+
+        const empty =
+            document.createElement("div");
+
+        empty.className =
+            "library-empty";
+
+        empty.textContent =
+            LT("noPlaylist");
+
+        library.appendChild(
+            empty
+        );
+
+    }
+
+
+    else {
+
+        libraryPlaylists.forEach(
+            function(pl, index) {
+
+                addLibraryRow(
+                    "📂  " + pl.name,
+                    function() {
+                        renderCustomPlaylist(index);
+                    }
+                );
+
+            }
+        );
+
+    }
+
+
+    const add =
+        document.createElement("button");
+
+    add.className =
+        "library-add";
+
+    add.textContent =
+        LT("newPlaylist");
+
+    add.onclick =
+        createLibraryPlaylist;
+
+    library.appendChild(
+        add
+    );
+
+}
+
+
+/* ========================================
+   MÜZİK KLASÖRLERİ
+======================================== */
+
+function renderMusicFolders() {
+
+    const library =
+        document.getElementById("library");
+
+    libraryView = "music";
+
+    library.innerHTML = "";
+
+
+    const title =
+        document.createElement("div");
+
+    title.className =
+        "library-title";
+
+    title.textContent =
+        LT("musicTitle");
+
+    library.appendChild(
+        title
+    );
 
 
     if (!musicFolders.length) {
@@ -2850,15 +3360,17 @@ function renderMusicFolders() {
             "library-empty";
 
         empty.textContent =
-            "Henüz müzik klasörü eklenmedi.";
+            LT("noMusicFolder");
 
-        library.appendChild(empty);
+        library.appendChild(
+            empty
+        );
 
     }
 
 
     musicFolders.forEach(
-        function(folder, index) {
+        function(folder) {
 
             const row =
                 document.createElement("div");
@@ -2870,13 +3382,16 @@ function renderMusicFolders() {
                 "📁  " + folder.name;
 
             row.onclick =
-    function() {
+                function() {
 
-        selectMP3();
+                    selectMP3();
 
-    };
+                };
 
-            library.appendChild(row);
+
+            library.appendChild(
+                row
+            );
 
         }
     );
@@ -2889,7 +3404,7 @@ function renderMusicFolders() {
         "library-add";
 
     add.textContent =
-        "＋ Yeni Müzik Klasörü Ekle";
+        LT("newMusicFolder");
 
     add.onclick =
         function() {
@@ -2898,86 +3413,274 @@ function renderMusicFolders() {
 
         };
 
-    library.appendChild(add);
+
+    library.appendChild(
+        add
+    );
 
 
     addLibraryBackButton();
+
 }
 
 
+/* ========================================
+   KÜTÜPHANE SATIRI
+======================================== */
 
-function addLibraryRow(text, action) {
-    const row = document.createElement("div");
-    row.className = "library-item";
-    row.textContent = text;
-    row.onclick = action;
-    document.getElementById("library").appendChild(row);
+function addLibraryRow(
+    text,
+    action
+) {
+
+    const row =
+        document.createElement("div");
+
+    row.className =
+        "library-item";
+
+    row.textContent =
+        text;
+
+    row.onclick =
+        action;
+
+    document
+        .getElementById("library")
+        .appendChild(row);
+
 }
+
+
+/* ========================================
+   YENİ PLAYLIST
+======================================== */
 
 function createLibraryPlaylist() {
-    const name = prompt("Playlist adı:");
-    if (!name || !name.trim()) return;
-    libraryPlaylists.push({ name: name.trim(), items: [] });
-    saveLibraryPlaylists();
-    renderLibraryHome();
-}
 
-function addLibraryItem(name, url, type) {
-    if (!libraryPlaylists.length) {
-        const create = confirm("Henüz playlist yok. Yeni playlist oluşturulsun mu?");
-        if (!create) return;
-        const playlistName = prompt("Playlist adı:");
-        if (!playlistName || !playlistName.trim()) return;
-        libraryPlaylists.push({ name: playlistName.trim(), items: [] });
+    const name =
+        prompt(
+            LT("playlistName")
+        );
+
+
+    if (
+        !name ||
+        !name.trim()
+    ) {
+
+        return;
+
     }
 
-    let choices = libraryPlaylists.map(function(pl, i) { return (i + 1) + ". " + pl.name; }).join("\n");
-    const answer = prompt("Hangi playlist'e eklensin?\n\n" + choices + "\n\nNumara gir:");
-    const index = Number(answer) - 1;
-    if (!Number.isInteger(index) || index < 0 || index >= libraryPlaylists.length) return;
 
-    const exists = libraryPlaylists[index].items.some(function(item) {
-        return item.type === type && item.url === url;
+    libraryPlaylists.push({
+
+        name:
+            name.trim(),
+
+        items: []
+
     });
-    if (!exists) {
-        libraryPlaylists[index].items.push({ name: name, url: url, type: type });
-        saveLibraryPlaylists();
-    }
-    statusBox.textContent = "Playlist'e eklendi";
+
+
+    saveLibraryPlaylists();
+
+    renderLibraryHome();
+
 }
-   
+
+
+/* ========================================
+   PLAYLIST'E EKLE
+======================================== */
+
+function addLibraryItem(
+    name,
+    url,
+    type
+) {
+
+    if (!libraryPlaylists.length) {
+
+        const create =
+            confirm(
+                LT("noPlaylistAsk")
+            );
+
+
+        if (!create) {
+            return;
+        }
+
+
+        const playlistName =
+            prompt(
+                LT("playlistName")
+            );
+
+
+        if (
+            !playlistName ||
+            !playlistName.trim()
+        ) {
+
+            return;
+
+        }
+
+
+        libraryPlaylists.push({
+
+            name:
+                playlistName.trim(),
+
+            items: []
+
+        });
+
+    }
+
+
+    let choices =
+        libraryPlaylists
+            .map(
+                function(pl, i) {
+
+                    return (
+                        (i + 1) +
+                        ". " +
+                        pl.name
+                    );
+
+                }
+            )
+            .join("\n");
+
+
+    const answer =
+        prompt(
+            LT("choosePlaylist") +
+            "\n\n" +
+            choices +
+            "\n\n" +
+            LT("enterNumber")
+        );
+
+
+    const index =
+        Number(answer) - 1;
+
+
+    if (
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= libraryPlaylists.length
+    ) {
+
+        return;
+
+    }
+
+
+    const exists =
+        libraryPlaylists[index]
+            .items
+            .some(
+                function(item) {
+
+                    return (
+                        item.type === type &&
+                        item.url === url
+                    );
+
+                }
+            );
+
+
+    if (!exists) {
+
+        libraryPlaylists[index]
+            .items
+            .push({
+
+                name:
+                    name,
+
+                url:
+                    url,
+
+                type:
+                    type
+
+            });
+
+
+        saveLibraryPlaylists();
+
+    }
+
+
+    statusBox.textContent =
+        LT("playlistAdded");
+
+}
+
+
+/* ========================================
+   ÖZEL PLAYLIST
+======================================== */
 
 function renderCustomPlaylist(index) {
 
-    const library = document.getElementById("library");
-    const playlist = libraryPlaylists[index];
+    const library =
+        document.getElementById("library");
+
+    const playlist =
+        libraryPlaylists[index];
+
 
     if (!playlist) {
+
         renderLibraryHome();
+
         return;
+
     }
 
-    currentLibraryPlaylist = index;
+
+    currentLibraryPlaylist =
+        index;
+
+    libraryView =
+        "playlist";
+
 
     library.innerHTML = "";
 
-    /* ================================
+
+    /* ========================================
        BAŞLIK
-    ================================= */
+    ======================================== */
 
-    const title = document.createElement("div");
+    const title =
+        document.createElement("div");
 
-    title.className = "library-title";
+    title.className =
+        "library-title";
 
     title.textContent =
-        "📂 " + playlist.name;
+        "📂 " +
+        playlist.name;
 
-    library.appendChild(title);
+    library.appendChild(
+        title
+    );
 
 
-    /* ================================
+    /* ========================================
        BOŞ PLAYLIST
-    ================================= */
+    ======================================== */
 
     if (
         !playlist.items ||
@@ -2991,19 +3694,22 @@ function renderCustomPlaylist(index) {
             "library-empty";
 
         empty.textContent =
-            "Bu playlist henüz boş.";
+            LT("playlistEmpty");
 
-        library.appendChild(empty);
+        library.appendChild(
+            empty
+        );
 
-    } else {
+    }
 
 
-        /* ================================
-           PLAYLIST ÖĞELERİ
-        ================================= */
+    else {
 
         playlist.items.forEach(
-            function(item, itemIndex) {
+            function(
+                item,
+                itemIndex
+            ) {
 
                 const row =
                     document.createElement("div");
@@ -3018,27 +3724,30 @@ function renderCustomPlaylist(index) {
                     "40px";
 
 
-                /* RADYO / MÜZİK İKONU */
-
                 row.textContent =
-                    (item.type === "radio"
-                        ? "📻  "
-                        : "🎵  ") +
+                    (
+                        item.type === "radio"
+                            ? "📻  "
+                            : "🎵  "
+                    ) +
                     item.name;
 
 
-                /* ================================
-                   SİL BUTONU
-                ================================= */
+                /* ========================================
+                   PLAYLISTTEN ÇIKAR
+                ======================================== */
 
                 const deleteButton =
                     document.createElement("button");
 
+
                 deleteButton.textContent =
                     "✖";
 
+
                 deleteButton.title =
-                    "Playlist'ten çıkar";
+                    LT("removeFromPlaylist");
+
 
                 deleteButton.style.position =
                     "absolute";
@@ -3070,14 +3779,20 @@ function renderCustomPlaylist(index) {
 
                         event.stopPropagation();
 
+
                         playlist.items.splice(
                             itemIndex,
                             1
                         );
 
+
                         saveLibraryPlaylists();
 
-                        renderCustomPlaylist(index);
+
+                        renderCustomPlaylist(
+                            index
+                        );
+
                     };
 
 
@@ -3086,9 +3801,9 @@ function renderCustomPlaylist(index) {
                 );
 
 
-                /* ================================
-                   ÇALMA
-                ================================= */
+                /* ========================================
+                   ÇAL
+                ======================================== */
 
                 row.onclick =
                     function() {
@@ -3101,66 +3816,88 @@ function renderCustomPlaylist(index) {
                                 item.url
                             );
 
+
                             songName.textContent =
                                 item.name;
 
-                            statusBox.textContent =
-                                "Hazır";
+
+                            setStatus("ready");
+
 
                             playButton.textContent =
                                 "▶";
 
+
                             progressFill.style.width =
                                 "0%";
+
 
                             currentTime.textContent =
                                 "00:00";
 
+
                             duration.textContent =
                                 "00:00";
 
-                        } else {
+                        }
+
+
+                        else {
 
                             audio.src =
                                 item.url;
 
-                            audio.play().catch(
-                                function() {
-                                    statusBox.textContent =
-                                        "Oynatmak için ▶ bas";
-                                }
-                            );
+
+                            audio.play()
+                                .catch(
+                                    function() {
+
+                                        setStatus("playHint");
+
+                                    }
+                                );
+
 
                             songName.textContent =
                                 item.name;
 
-                            statusBox.textContent =
-                                "Hazır";
+
+                            setStatus("ready");
+
 
                             playButton.textContent =
                                 "▶";
 
+
                             progressFill.style.width =
                                 "0%";
+
 
                             currentTime.textContent =
                                 "00:00";
 
+
                             duration.textContent =
                                 "00:00";
+
                         }
+
                     };
 
 
-                library.appendChild(row);
+                library.appendChild(
+                    row
+                );
+
             }
         );
+
     }
 
 
-    /* ================================
+    /* ========================================
        PLAYLIST SİL
-    ================================= */
+    ======================================== */
 
     const deletePlaylist =
         document.createElement("button");
@@ -3169,7 +3906,8 @@ function renderCustomPlaylist(index) {
         "library-add";
 
     deletePlaylist.textContent =
-        "🗑 Playlist'i Sil";
+        LT("deletePlaylist");
+
 
     deletePlaylist.onclick =
         function() {
@@ -3178,43 +3916,58 @@ function renderCustomPlaylist(index) {
                 !confirm(
                     '"' +
                     playlist.name +
-                    '" playlisti silinsin mi?'
+                    '" ' +
+                    LT("deleteConfirm")
                 )
             ) {
+
                 return;
+
             }
+
 
             libraryPlaylists.splice(
                 index,
                 1
             );
 
+
             saveLibraryPlaylists();
 
-            currentLibraryPlaylist = null;
+
+            currentLibraryPlaylist =
+                null;
+
 
             renderLibraryHome();
+
         };
+
 
     library.appendChild(
         deletePlaylist
     );
 
 
-    /* ================================
-       GERİ
-    ================================= */
-
     addLibraryBackButton();
+
 }
 
+
+/* ========================================
+   FAVORİLER
+======================================== */
 
 function renderFavoritesLibrary() {
 
     const library =
         document.getElementById("library");
 
+    libraryView =
+        "favorites";
+
     library.innerHTML = "";
+
 
     const title =
         document.createElement("div");
@@ -3223,81 +3976,113 @@ function renderFavoritesLibrary() {
         "library-title";
 
     title.textContent =
-        "★ FAVORİLER";
+        LT("favorites");
 
-    library.appendChild(title);
+    library.appendChild(
+        title
+    );
 
 
     let found = 0;
 
 
-    /* =================================
+    /* ========================================
        NORMAL RADYOLAR
-    ================================= */
+    ======================================== */
 
-    favoriteRadios.forEach(function(url) {
+    favoriteRadios.forEach(
+        function(url) {
 
-        const radio =
-            radioListData.find(function(r) {
-                return r.url === url;
-            });
+            const radio =
+                radioListData.find(
+                    function(r) {
 
-        if (!radio) {
-            return;
-        }
+                        return r.url === url;
 
-        found++;
+                    }
+                );
 
-        const row =
-            document.createElement("div");
 
-        row.className =
-            "library-item";
+            if (!radio) {
+                return;
+            }
 
-        row.textContent =
-            "★  " + radio.name;
 
-        row.onclick = function() {
+            found++;
 
-            const radioIndex =
-                radioListData.indexOf(radio);
 
-            currentRadio =
-                radioIndex;
+            const row =
+                document.createElement("div");
 
-            playRadioStream(
-                radio.url
-            );
+            row.className =
+                "library-item";
 
-            songName.textContent =
+            row.textContent =
+                "★  " +
                 radio.name;
 
-            statusBox.textContent =
-                "Hazır";
 
-            playButton.textContent =
-                "▶";
+            row.onclick =
+                function() {
 
-            renderRadios();
-        };
-
-        library.appendChild(row);
-
-    });
+                    const radioIndex =
+                        radioListData.indexOf(
+                            radio
+                        );
 
 
-    /* =================================
+                    currentRadio =
+                        radioIndex;
+
+
+                    playRadioStream(
+                        radio.url
+                    );
+
+
+                    songName.textContent =
+                        radio.name;
+
+
+                    setStatus("ready");
+
+
+                    playButton.textContent =
+                        "▶";
+
+
+                    renderRadios();
+
+                };
+
+
+            library.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    /* ========================================
        DÜNYA RADYOLARI
-    ================================= */
+    ======================================== */
 
     worldFavoriteRadios.forEach(
         function(radio) {
 
-            if (!radio || !radio.url) {
+            if (
+                !radio ||
+                !radio.url
+            ) {
+
                 return;
+
             }
 
+
             found++;
+
 
             const row =
                 document.createElement("div");
@@ -3307,45 +4092,57 @@ function renderFavoritesLibrary() {
 
             row.textContent =
                 "🌍  " +
-                (radio.name ||
-                 "Dünya Radyosu");
-
-            row.onclick = function() {
-
-                playRadioStream(
-                    radio.url
+                (
+                    radio.name ||
+                    LT("worldRadio")
                 );
 
-                songName.textContent =
-                    radio.name ||
-                    "Dünya Radyosu";
 
-                statusBox.textContent =
-                    "Hazır";
+            row.onclick =
+                function() {
 
-                playButton.textContent =
-                    "▶";
+                    playRadioStream(
+                        radio.url
+                    );
 
-                progressFill.style.width =
-                    "0%";
 
-                currentTime.textContent =
-                    "00:00";
+                    songName.textContent =
+                        radio.name ||
+                        LT("worldRadio");
 
-                duration.textContent =
-                    "00:00";
 
-            };
+                    setStatus("ready");
 
-            library.appendChild(row);
+
+                    playButton.textContent =
+                        "▶";
+
+
+                    progressFill.style.width =
+                        "0%";
+
+
+                    currentTime.textContent =
+                        "00:00";
+
+
+                    duration.textContent =
+                        "00:00";
+
+                };
+
+
+            library.appendChild(
+                row
+            );
 
         }
     );
 
 
-    /* =================================
-       HİÇ FAVORİ YOKSA
-    ================================= */
+    /* ========================================
+       FAVORİ YOK
+    ======================================== */
 
     if (!found) {
 
@@ -3356,9 +4153,11 @@ function renderFavoritesLibrary() {
             "library-empty";
 
         empty.textContent =
-            "Henüz favori radyo yok.";
+            LT("noFavorite");
 
-        library.appendChild(empty);
+        library.appendChild(
+            empty
+        );
 
     }
 
@@ -3368,14 +4167,94 @@ function renderFavoritesLibrary() {
 }
 
 
+/* ========================================
+   GERİ BUTONU
+======================================== */
 
 function addLibraryBackButton() {
-    const back = document.createElement("button");
-    back.className = "library-add";
-    back.textContent = "← Kütüphaneye Dön";
-    back.onclick = renderLibraryHome;
-    document.getElementById("library").appendChild(back);
+
+    const back =
+        document.createElement("button");
+
+    back.className =
+        "library-add";
+
+    back.textContent =
+        LT("back");
+
+
+    back.onclick =
+        function() {
+
+            renderLibraryHome();
+
+        };
+
+
+    document
+        .getElementById("library")
+        .appendChild(back);
+
 }
+
+
+/* ========================================
+   DİL DEĞİŞİNCE AÇIK OLAN
+   KÜTÜPHANE EKRANINI YENİLE
+======================================== */
+
+function refreshLibraryLanguage() {
+
+    const library =
+        document.getElementById("library");
+
+
+    if (
+        !library ||
+        library.style.display !== "block"
+    ) {
+
+        return;
+
+    }
+
+
+    if (libraryView === "music") {
+
+        renderMusicFolders();
+
+        return;
+
+    }
+
+
+    if (libraryView === "favorites") {
+
+        renderFavoritesLibrary();
+
+        return;
+
+    }
+
+
+    if (
+        libraryView === "playlist" &&
+        currentLibraryPlaylist !== null
+    ) {
+
+        renderCustomPlaylist(
+            currentLibraryPlaylist
+        );
+
+        return;
+
+    }
+
+
+    renderLibraryHome();
+
+}
+
 
 function toggleRadios() {
 
@@ -3451,8 +4330,7 @@ function addURL() {
         document.getElementById("urlInput").value.trim();
 
     if (!name || !url) {
-        statusBox.textContent =
-            "Radyo adı ve URL girin.";
+        setStatus("enterRadio");
         return;
     }
 
@@ -3473,7 +4351,7 @@ function addURL() {
 
     audio.src = url;
     songName.textContent = name;
-    statusBox.textContent = "Hazır";
+    setStatus("ready");
     progressFill.style.width = "0%";
     currentTime.textContent = "00:00";
     duration.textContent = "00:00";
@@ -3482,11 +4360,10 @@ function addURL() {
     audio.play()
         .then(function() {
             playButton.textContent = "Ⅱ";
-            statusBox.textContent = "Çalıyor";
+            setStatus("playing");
         })
         .catch(function() {
-            statusBox.textContent =
-                "Oynatmak için ▶ bas";
+            setStatus("playHint");
         });
 }
 
@@ -3501,8 +4378,7 @@ function updateCurrentRadio() {
         currentRadio < 0 ||
         currentRadio >= radioListData.length
     ) {
-        statusBox.textContent =
-            "Önce bir radyo seçin.";
+        setStatus("selectRadio");
         return;
     }
 
@@ -3513,8 +4389,7 @@ function updateCurrentRadio() {
         document.getElementById("urlInput").value.trim();
 
     if (!name || !url) {
-        statusBox.textContent =
-            "Radyo adı ve URL girin.";
+        setStatus("enterRadio");
         return;
     }
 
@@ -3553,7 +4428,7 @@ function updateCurrentRadio() {
 
     audio.src = url;
     songName.textContent = name;
-    statusBox.textContent = "Hazır";
+    setStatus("ready");
     progressFill.style.width = "0%";
     currentTime.textContent = "00:00";
     duration.textContent = "00:00";
@@ -3564,11 +4439,10 @@ function updateCurrentRadio() {
     audio.play()
         .then(function() {
             playButton.textContent = "Ⅱ";
-            statusBox.textContent = "Çalıyor";
+            setStatus("playing");
         })
         .catch(function() {
-            statusBox.textContent =
-                "Oynatmak için ▶ bas";
+            setStatus("playHint");
         });
 }
 
@@ -3664,8 +4538,7 @@ audio.addEventListener(
         playButton.textContent =
             "▶";
 
-        statusBox.textContent =
-            "Bu kaynak oynatılamadı.";
+        setStatus("sourceFailed");
 
     }
 );
@@ -3747,7 +4620,7 @@ const month =
 const year =
     externalTime.getFullYear();
 
-const days = [
+const daysTR = [
     "Pazar",
     "Pazartesi",
     "Salı",
@@ -3757,8 +4630,23 @@ const days = [
     "Cumartesi"
 ];
 
+const daysEN = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+];
+
+const days =
+    currentLanguage === "en"
+        ? daysEN
+        : daysTR;
+
 const dayName =
-    days[externalTime.getDay()];
+    days[externalTime.getDay()];;
 
 document.getElementById(
     "digitalDate"
@@ -4140,8 +5028,7 @@ favoriteButton.textContent =
     isFavorite ? "★" : "☆";
 
 favoriteButton.title =
-    "Favorilere ekle / çıkar";
-
+    LT("favoriteAddRemove");
 favoriteButton.style.float = "right";
 favoriteButton.style.background = "none";
 favoriteButton.style.border = "none";
@@ -4217,9 +5104,7 @@ const addButton =
     document.createElement("button");
 
 addButton.textContent = "+";
-addButton.title =
-    "Playlist'e ekle";
-
+addButton.title = LT("playlistAdd");
 addButton.style.float = "none";
 addButton.style.position = "absolute";
 addButton.style.right = "38px";
@@ -4352,8 +5237,7 @@ item.appendChild(addButton);
             songName.textContent =
                 station.name || "Dünya Radyosu";
 
-            statusBox.textContent =
-                "Hazır";
+            setStatus("ready");
 
             progressFill.style.width = "0%";
 
@@ -4414,6 +5298,280 @@ function filterWorldStations() {
     renderWorldStations(filtered);
 
 }
+
+
+/* ========================================
+   DİL BUTONLARI
+======================================== */
+
+const trButton = document.getElementById("trButton");
+const enButton = document.getElementById("enButton");
+
+
+function applyLanguage() {
+
+    const isEnglish = currentLanguage === "en";
+
+
+    /* ========================================
+       ALT BUTONLAR
+    ======================================== */
+
+    document.querySelectorAll(".bottom button").forEach(function(button) {
+
+        const text = button.textContent.trim();
+
+        if (text === "📂 Ekle" || text === "📂 Add") {
+            button.textContent =
+                isEnglish ? "📂 Add" : "📂 Ekle";
+        }
+
+        else if (text === "🎵 Müzikler" || text === "🎵 Music") {
+            button.textContent =
+                isEnglish ? "🎵 Music" : "🎵 Müzikler";
+        }
+
+        else if (text === "📚 Kitaplık" || text === "📚 Library") {
+            button.textContent =
+                isEnglish ? "📚 Library" : "📚 Kitaplık";
+        }
+
+        else if (text === "📻 Radyo" || text === "📻 Radio") {
+            button.textContent =
+                isEnglish ? "📻 Radio" : "📻 Radyo";
+        }
+
+    });
+
+
+    /* ========================================
+       BUTON AÇIKLAMALARI
+    ======================================== */
+
+    const worldButton =
+        document.querySelector(
+            'button[onclick="toggleWorldRadios()"]'
+        );
+
+    if (worldButton) {
+
+        worldButton.title =
+            isEnglish
+                ? "World Radios"
+                : "Dünya Radyoları";
+
+    }
+
+
+    const repeatButton =
+        document.getElementById("repeatButton");
+
+    if (repeatButton) {
+
+        repeatButton.title =
+            isEnglish
+                ? "Repeat"
+                : "Tekrar çal";
+
+    }
+
+
+    const shuffleButton =
+        document.getElementById("shuffleButton");
+
+    if (shuffleButton) {
+
+        shuffleButton.title =
+            isEnglish
+                ? "Shuffle"
+                : "Karışık çal";
+
+    }
+
+
+    /* ========================================
+       PLAYLIST / FAVORİ TOOLTIPLERİ
+    ======================================== */
+
+    document.querySelectorAll("button").forEach(function(button) {
+
+        if (
+            button.title === "Playlist'e ekle" ||
+            button.title === "Add to Playlist"
+        ) {
+
+            button.title =
+                isEnglish
+                    ? "Add to Playlist"
+                    : "Playlist'e ekle";
+
+        }
+
+
+        if (
+            button.title === "Favorilere ekle / çıkar" ||
+            button.title === "Add / Remove from Favorites"
+        ) {
+
+            button.title =
+                isEnglish
+                    ? "Add / Remove from Favorites"
+                    : "Favorilere ekle / çıkar";
+
+        }
+
+    });
+
+
+    /* ========================================
+       DÜNYA RADYOLARI
+    ======================================== */
+
+    const countrySelect =
+        document.getElementById("worldCountrySelect");
+
+    if (
+        countrySelect &&
+        countrySelect.options.length > 0
+    ) {
+
+        countrySelect.options[0].textContent =
+            isEnglish
+                ? "🌍 Select country"
+                : "🌍 Ülke seç";
+
+    }
+
+
+    const searchInput =
+        document.getElementById("worldSearchInput");
+
+    if (searchInput) {
+
+        searchInput.placeholder =
+            isEnglish
+                ? "Search radio..."
+                : "Radyo ara...";
+
+    }
+
+
+    /* ========================================
+       URL ALANLARI
+    ======================================== */
+
+    if (radioNameInput) {
+
+        radioNameInput.placeholder =
+            isEnglish
+                ? "Radio name"
+                : "Radyo adı";
+
+    }
+
+
+    const urlInput =
+        document.getElementById("urlInput");
+
+    if (urlInput) {
+
+        urlInput.placeholder =
+            isEnglish
+                ? "Radio URL"
+                : "Radyo URL'si";
+
+    }
+
+
+    const urlButtons =
+        document.querySelectorAll(".url-button");
+
+    if (urlButtons.length >= 2) {
+
+        urlButtons[0].textContent =
+            isEnglish
+                ? "Change"
+                : "Değiştir";
+
+        urlButtons[1].textContent =
+            isEnglish
+                ? "Add URL"
+                : "URL Ekle";
+
+    }
+
+
+    /* ========================================
+       DİL BUTONLARI
+    ======================================== */
+
+    if (trButton) {
+        trButton.title = "Türkçe";
+    }
+
+    if (enButton) {
+        enButton.title = "English";
+    }
+
+
+    /* ========================================
+       KÜTÜPHANE
+    ======================================== */
+
+    refreshLibraryLanguage();
+
+}
+
+
+/* ========================================
+   TR
+======================================== */
+
+if (trButton) {
+
+    trButton.onclick = function() {
+
+        currentLanguage = "tr";
+
+        localStorage.setItem(
+            "enisLanguage",
+            "tr"
+        );
+
+        applyLanguage();
+
+    };
+
+}
+
+
+/* ========================================
+   EN
+======================================== */
+
+if (enButton) {
+
+    enButton.onclick = function() {
+
+        currentLanguage = "en";
+
+        localStorage.setItem(
+            "enisLanguage",
+            "en"
+        );
+
+        applyLanguage();
+
+    };
+
+}
+
+
+/* ========================================
+   SAYFA AÇILIŞI
+======================================== */
+
+applyLanguage();
 
 
 </script>
