@@ -3690,8 +3690,7 @@ async function findRadioBrowserServer() {
                 continue;
             }
 
-            const protocol =
-                server.ssl ? "https://" : "http://";
+            const protocol = "https://";
 
             const serverURL =
                 protocol + server.name;
