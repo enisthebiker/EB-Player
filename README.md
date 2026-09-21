@@ -9,4 +9,4 @@ Embed:
 </iframe>
 
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/05350c8f-773e-44e3-b542-d3bfdcf75759" />
+<img width="500" height="700" alt="image" src="https://github.com/user-attachments/assets/05350c8f-773e-44e3-b542-d3bfdcf75759" />
