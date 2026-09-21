@@ -9,4 +9,4 @@ Embed:
 </iframe>
 
 
-<img width="500" height="700" alt="image" src="https://github.com/user-attachments/assets/05350c8f-773e-44e3-b542-d3bfdcf75759" />
+<img width="403" height="393" alt="EB-player" src="https://github.com/user-attachments/assets/42d4a55d-0881-4031-82d5-34f6d0f984b3" />
