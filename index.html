@@ -4885,7 +4885,11 @@ async function loadWorldCountries() {
         if (!found) {
 
             document.getElementById("worldCountrySelect").innerHTML =
-                '<option value="">Radio Browser bağlantısı kurulamadı</option>';
+                '<option value="">' +
+    (currentLanguage === "en"
+        ? "Radio Browser connection failed"
+        : "Radio Browser bağlantısı kurulamadı") +
+    '</option>';
 
             return;
         }
@@ -4893,7 +4897,12 @@ async function loadWorldCountries() {
 
     const select = document.getElementById("worldCountrySelect");
 
-    select.innerHTML = '<option value="">🌍 Ülke seç</option>';
+    select.innerHTML =
+    '<option value="">' +
+    (currentLanguage === "en"
+        ? "🌍 Select country"
+        : "🌍 Ülke seç") +
+    '</option>';
 
     try {
 
@@ -4936,7 +4945,11 @@ async function loadWorldCountries() {
     } catch (error) {
 
         select.innerHTML =
-            '<option value="">Ülkeler alınamadı</option>';
+    '<option value="">' +
+    (currentLanguage === "en"
+        ? "Could not retrieve countries"
+        : "Ülkeler alınamadı") +
+    '</option>';
 
         console.error(
             "Radio Browser ülke hatası:",
@@ -4956,12 +4969,22 @@ async function loadWorldStations() {
     const countryCode = select.value;
 
     stationBox.innerHTML =
-        '<div style="padding:15px;color:#888;">Radyolar yükleniyor...</div>';
+        stationBox.innerHTML =
+    '<div style="padding:15px;color:#888;">' +
+    (currentLanguage === "en"
+        ? "Radios are loading..."
+        : "Radyolar yükleniyor...") +
+    '</div>';
 
     if (!countryCode) {
 
         stationBox.innerHTML =
-            '<div style="padding:15px;color:#888;">Önce bir ülke seç.</div>';
+            stationBox.innerHTML =
+    '<div style="padding:15px;color:#888;">' +
+    (currentLanguage === "en"
+        ? "Please select a country first."
+        : "Önce bir ülke seç.") +
+    '</div>';
 
         return;
     }
@@ -4985,7 +5008,11 @@ console.log("DÜNYA RADYO API:", url);
 console.log("CEVAP:", response.status, response.statusText);
 
         if (!response.ok) {
-            throw new Error("İstasyonlar alınamadı");
+            throw new Error(
+    currentLanguage === "en"
+        ? "Could not retrieve stations"
+        : "İstasyonlar alınamadı"
+);
         }
 
         const stations = await response.json();
@@ -4997,7 +5024,12 @@ console.log("CEVAP:", response.status, response.statusText);
     } catch (error) {
 
         stationBox.innerHTML =
-            '<div style="padding:15px;color:#888;">Radyolar alınamadı.</div>';
+            stationBox.innerHTML =
+    '<div style="padding:15px;color:#888;">' +
+    (currentLanguage === "en"
+        ? "Could not retrieve radios."
+        : "Radyolar alınamadı.") +
+    '</div>';
 
         console.error(
             "Radio Browser istasyon hatası:",
@@ -5018,8 +5050,12 @@ function renderWorldStations(stations) {
 
     if (!stations.length) {
 
-        stationBox.innerHTML =
-            '<div style="padding:15px;color:#888;">Bu ülkede istasyon bulunamadı.</div>';
+       stationBox.innerHTML =
+    '<div style="padding:15px;color:#888;">' +
+    (currentLanguage === "en"
+        ? "No stations found in this country."
+        : "Bu ülkede istasyon bulunamadı.") +
+    '</div>';
 
         return;
     }
