@@ -114,7 +114,7 @@ body {
 }
 
 .song-name {
-    width: 90%;
+    width: 100%;
 
     text-align: center;
 
@@ -581,6 +581,40 @@ body {
     color: #333 !important;
 }
 
+/* DÜNYA RADYO BİLGİ KUTUSU */
+.display {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 5px;
+}
+
+.display-main {
+    flex: 1 1 75%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+text-align: center;
+}
+
+.world-station-info-box {
+    align-self: stretch;
+    display: none;
+    width: 25%;
+    box-sizing: border-box;
+    border: 0px solid #000;
+    border-radius: 0px;
+    background: #000;
+    color: #888;
+    padding: 5px;
+    font-size: 10px;
+    text-align: center;
+    overflow: hidden;
+flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
 </style>
 </head>
 
@@ -611,7 +645,9 @@ body {
 
     <!-- EKRAN -->
 
-    <div class="display">
+<div class="display">
+
+    <div class="display-main">
 
         <div class="song-name" id="songName">
             🎧
@@ -622,6 +658,11 @@ body {
         </div>
 
     </div>
+
+    <div class="world-station-info-box" id="worldStationInfoBox">
+    </div>
+
+</div>
 
 
 
@@ -2333,7 +2374,6 @@ function toggleURL() {
         document.getElementById("library");
     library.style.display = "none";
 
-
     if (
         area.style.display === "block"
     ) {
@@ -2417,6 +2457,12 @@ function renderPlaylist() {
 
 }
 function togglePlaylist() {
+const worldInfoBox = document.getElementById("worldStationInfoBox");
+
+if (worldInfoBox) {
+    worldInfoBox.innerHTML = "";
+    worldInfoBox.style.display = "none";
+}
 
     const playlist =
         document.getElementById("playlist");
@@ -2653,7 +2699,13 @@ function renderRadios() {
             currentRadio = index;
 
             playRadioStream(radio.url);
+const worldInfoBox = document.getElementById("worldStationInfoBox");
 
+if (worldInfoBox) {
+    worldInfoBox.innerHTML = "";
+    worldInfoBox.style.display = "none";
+}
+worldInfoBox.parentElement.classList.remove("has-world-info");
             songName.textContent = radio.name;
 
             setStatus("ready");
@@ -3829,13 +3881,20 @@ function renderCustomPlaylist(index) {
                     function() {
 
                         if (
-                            item.type === "radio"
-                        ) {
+    item.type === "radio"
+) {
 
-                            playRadioStream(
-                                item.url
-                            );
+    const worldInfoBox =
+        document.getElementById("worldStationInfoBox");
 
+    if (worldInfoBox) {
+        worldInfoBox.innerHTML = "";
+        worldInfoBox.style.display = "none";
+    }
+
+    playRadioStream(
+        item.url
+    );
 
                             songName.textContent =
                                 item.name;
@@ -5067,9 +5126,6 @@ function renderWorldStations(stations) {
 
         item.className = "world-station";
 
-/* =================================
-   DÜNYA RADYOSU FAVORİ
-================================= */
 
 /* =================================
    DÜNYA RADYOSU FAVORİ
@@ -5294,6 +5350,42 @@ item.appendChild(addButton);
             }
 
             playRadioStream(streamURL);
+const worldInfoBox =
+    document.getElementById("worldStationInfoBox");
+
+if (worldInfoBox) {
+
+    const countryCode =
+        station.countrycode || "";
+
+    const tags =
+        station.tags || "";
+
+    const favicon =
+        station.favicon || "";
+
+    if (countryCode || tags || favicon) {
+
+        worldInfoBox.innerHTML =
+
+    (favicon
+        ? '<img src="' + favicon + '" style="width:32px;height:32px;object-fit:contain;margin-bottom:5px;">'
+        : "") +
+
+    (countryCode ? countryCode : "") +
+
+    (countryCode && tags ? "<br>" : "") +
+
+    (tags ? tags : "");
+
+        worldInfoBox.style.display = "flex";
+
+    } else {
+
+        worldInfoBox.innerHTML = "";
+        worldInfoBox.style.display = "none";
+    }
+}
 
             songName.textContent =
                 station.name || "Dünya Radyosu";
