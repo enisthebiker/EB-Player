@@ -1,7 +1,7 @@
 Embed:
 
 <iframe
-    src="https://enisthebiker.github.io/EB-Player/"
+    src="https://enisthebiker.github.io/Faraway-Radio/"
     width="70%"
     height="700"
     style="border:0; display:block;"
