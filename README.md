@@ -30,4 +30,4 @@ Embed:
 
 ### Note
 
-The application does not require an external database. Radio stations and favorites are stored locally in the user's browser.
+The application does not require an external database. Radio stations and favorites are stored locally in the user's browser. Developed by Enis Baydemir
